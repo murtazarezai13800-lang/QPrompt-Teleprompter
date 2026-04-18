@@ -29,38 +29,69 @@ jobs:
       with:
         arch: x64
 
-    - name: Install KDE Frameworks via Craft
+    - name: Install KDE Frameworks
       shell: pwsh
       run: |
-        python -m pip install jinja2
-        iwr https://raw.githubusercontent.com/KDE/craft/master/setup/CraftSetup.py -OutFile CraftSetup.py
-        python CraftSetup.py --prefix C:\CraftRoot
-        C:\CraftRoot\craft\craftenv.ps1
-        craft --set version=kde/5.15 libs/qt5 || true
-        craft ki18n
-        craft kcoreaddons
-        craft kirigami
+        git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/extra-cmake-modules.git
+        cd extra-cmake-modules
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+        cmake --build build --config Release
+        cmake --install build --prefix C:\kde
+        cd ..
+
+        git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/kcoreaddons.git
+        cd kcoreaddons
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF `
+          -DCMAKE_PREFIX_PATH="C:\kde;$env:Qt6_DIR"
+        cmake --build build --config Release
+        cmake --install build --prefix C:\kde
+        cd ..
+
+        git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/kirigami.git
+        cd kirigami
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF `
+          -DCMAKE_PREFIX_PATH="C:\kde;$env:Qt6_DIR"
+        cmake --build build --config Release
+        cmake --install build --prefix C:\kde
+        cd ..
+
+        git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/kglobalaccel.git
+        cd kglobalaccel
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF `
+          -DCMAKE_PREFIX_PATH="C:\kde;$env:Qt6_DIR"
+        cmake --build build --config Release
+        cmake --install build --prefix C:\kde
+        cd ..
 
     - name: Configure CMake
       shell: pwsh
       run: |
         cmake -B build `
           -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="C:\CraftRoot" `
+          -DCMAKE_PREFIX_PATH="C:\kde;$env:Qt6_DIR" `
+          -DCMAKE_INSTALL_PREFIX="C:\TAMprompt" `
           -G "Visual Studio 17 2022" -A x64
 
     - name: Build
       shell: pwsh
       run: cmake --build build --config Release -j4
 
+    - name: Install
+      shell: pwsh
+      run: cmake --install build --config Release
+
+    - name: Deploy Qt
+      shell: pwsh
+      run: |
+        windeployqt --qmldir src C:\TAMprompt\bin\TAMprompt.exe
+
     - name: Package
       shell: pwsh
       run: |
-        cd build
-        cpack -G NSIS
+        Compress-Archive -Path C:\TAMprompt\* -DestinationPath TAMprompt-Windows.zip
 
-    - name: Upload installer
+    - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: TAMprompt-Windows-Installer
-        path: build/*.exe
+        name: TAMprompt-Windows
+        path: TAMprompt-Windows.zip
