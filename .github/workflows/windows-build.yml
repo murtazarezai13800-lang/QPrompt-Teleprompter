@@ -32,6 +32,7 @@ jobs:
     - name: Install KDE Frameworks
       shell: pwsh
       run: |
+        # === extra-cmake-modules ===
         git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/extra-cmake-modules.git
         cd extra-cmake-modules
         cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
@@ -39,6 +40,7 @@ jobs:
         cmake --install build --prefix C:\kde
         cd ..
 
+        # === kcoreaddons ===
         git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/kcoreaddons.git
         cd kcoreaddons
         cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF `
@@ -47,6 +49,7 @@ jobs:
         cmake --install build --prefix C:\kde
         cd ..
 
+        # === kirigami ===
         git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/kirigami.git
         cd kirigami
         cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF `
@@ -55,10 +58,12 @@ jobs:
         cmake --install build --prefix C:\kde
         cd ..
 
+        # === kglobalaccel (با فلگ دور زدن چک پلتفرم ویندوز) ===
         git clone --depth 1 --branch v6.9.0 https://invent.kde.org/frameworks/kglobalaccel.git
         cd kglobalaccel
         cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF `
-          -DCMAKE_PREFIX_PATH="C:\kde;$env:Qt6_DIR"
+          -DCMAKE_PREFIX_PATH="C:\kde;$env:Qt6_DIR" `
+          -DKF_IGNORE_PLATFORM_CHECK=ON
         cmake --build build --config Release
         cmake --install build --prefix C:\kde
         cd ..
