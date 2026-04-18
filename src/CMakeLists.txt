@@ -343,7 +343,7 @@ qt_add_qml_module(
 )
 
 if (UNIX AND NOT APPLE)
-    set(OUTPUT_NAME "qprompt")
+    set(OUTPUT_NAME "TAMprompt")
 else()
     set(OUTPUT_NAME "QPrompt")
 endif()

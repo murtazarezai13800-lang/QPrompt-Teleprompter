@@ -29,9 +29,9 @@ set(RELEASE_SERVICE_VERSION_MINOR "1")
 set(RELEASE_SERVICE_VERSION_MICRO "0")
 set(RELEASE_SERVICE_VERSION "${RELEASE_SERVICE_VERSION_MAJOR}.${RELEASE_SERVICE_VERSION_MINOR}.${RELEASE_SERVICE_VERSION_MICRO}")
 
-project(qprompt
+project(TAMprompt
     VERSION ${RELEASE_SERVICE_VERSION}
-    DESCRIPTION "Teleprompter software for all video creators"
+    DESCRIPTION "TAMprompt - Custom Teleprompter"
     HOMEPAGE_URL "https://qprompt.app/"
     LANGUAGES CXX)
 
