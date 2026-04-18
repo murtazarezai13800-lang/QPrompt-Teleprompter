@@ -1,0 +1,66 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.7.2'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        modules: 'qtwebsockets qtshadertools'
+
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Install KDE Frameworks via Craft
+      shell: pwsh
+      run: |
+        python -m pip install jinja2
+        iwr https://raw.githubusercontent.com/KDE/craft/master/setup/CraftSetup.py -OutFile CraftSetup.py
+        python CraftSetup.py --prefix C:\CraftRoot
+        C:\CraftRoot\craft\craftenv.ps1
+        craft --set version=kde/5.15 libs/qt5 || true
+        craft ki18n
+        craft kcoreaddons
+        craft kirigami
+
+    - name: Configure CMake
+      shell: pwsh
+      run: |
+        cmake -B build `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_PREFIX_PATH="C:\CraftRoot" `
+          -G "Visual Studio 17 2022" -A x64
+
+    - name: Build
+      shell: pwsh
+      run: cmake --build build --config Release -j4
+
+    - name: Package
+      shell: pwsh
+      run: |
+        cd build
+        cpack -G NSIS
+
+    - name: Upload installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: TAMprompt-Windows-Installer
+        path: build/*.exe
